@@ -232,6 +232,10 @@ static char * const zone_names[MAX_NR_ZONES] = {
 #ifdef CONFIG_ZONE_DEVICE
 	 "Device",
 #endif
+#ifdef CONFIG_FS_PMBUDDY
+	 "PMOnly",
+	 "PMMigrate",
+#endif
 };
 
 char * const migratetype_names[MIGRATE_TYPES] = {
@@ -6486,15 +6490,18 @@ void __init free_area_init_nodes(unsigned long *max_zone_pfn)
 	start_pfn = find_min_pfn_with_active_regions();
 
 	for (i = 0; i < MAX_NR_ZONES; i++) {
-		if (i == ZONE_MOVABLE)
+		if (i == ZONE_MOVABLE || i == ZONE_PMONLY)
 			continue;
-
 		end_pfn = max(max_zone_pfn[i], start_pfn);
 		arch_zone_lowest_possible_pfn[i] = start_pfn;
 		arch_zone_highest_possible_pfn[i] = end_pfn;
 
 		start_pfn = end_pfn;
 	}
+#ifdef CONFIG_FS_PMBUDDY
+	arch_zone_lowest_possible_pfn[ZONE_PMONLY] = start_pfn;
+	arch_zone_highest_possible_pfn[ZONE_PMONLY] = max_zone_pfn[ZONE_PMONLY];
+#endif
 
 	/* Find the PFNs that ZONE_MOVABLE begins at in each node */
 	memset(zone_movable_pfn, 0, sizeof(zone_movable_pfn));
